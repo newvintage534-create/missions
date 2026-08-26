@@ -1,0 +1,715 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Completed Missions</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=IBM+Plex+Mono:ital,wght@0,400;0,500;0,600;1,400&family=Bebas+Neue&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --void:#0a0c0f;
+    --gunmetal:#161a21;
+    --panel:#1c212a;
+    --steel:#4a5568;
+    --steel-dim:#2a313d;
+    --gold:#c9a227;
+    --gold-dim:#8a7020;
+    --blood:#8b1e2f;
+    --off-white:#e8e4da;
+    --off-white-dim:#9a9689;
+  }
+
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:
+      radial-gradient(circle at 50% 0%, #12151b 0%, var(--void) 60%);
+    color:var(--off-white);
+    font-family:'IBM Plex Mono', monospace;
+    min-height:100vh;
+    padding:48px 24px 80px;
+    position:relative;
+    overflow-x:hidden;
+  }
+
+  /* faint scanline / vignette texture */
+  body::before{
+    content:"";
+    position:fixed; inset:0;
+    background-image:repeating-linear-gradient(0deg, rgba(255,255,255,0.015) 0px, rgba(255,255,255,0.015) 1px, transparent 1px, transparent 3px);
+    pointer-events:none;
+    z-index:1;
+  }
+  body::after{
+    content:"";
+    position:fixed; inset:0;
+    box-shadow: inset 0 0 220px rgba(0,0,0,0.85);
+    pointer-events:none;
+    z-index:1;
+  }
+
+  .wrap{max-width:1040px;margin:38px auto 0;position:relative;z-index:2;}
+
+  /* ---------- Classification banner ---------- */
+  .classbar{
+    position:relative;
+    z-index:3;
+    height:22px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    background:
+      repeating-linear-gradient(45deg, var(--blood) 0px, var(--blood) 14px, #1a0508 14px, #1a0508 28px);
+    overflow:hidden;
+  }
+  .classbar span{
+    background:var(--void);
+    color:var(--off-white);
+    font-family:'IBM Plex Mono', monospace;
+    font-size:10px;
+    letter-spacing:0.35em;
+    font-weight:600;
+    padding:2px 18px;
+    text-transform:uppercase;
+  }
+
+  /* ---------- Header ---------- */
+  header{
+    display:flex;
+    align-items:flex-end;
+    justify-content:space-between;
+    border-bottom:1px solid var(--steel-dim);
+    padding-bottom:22px;
+    margin-bottom:40px;
+    flex-wrap:wrap;
+    gap:16px;
+    position:relative;
+  }
+  .eyebrow{
+    font-size:11px;
+    letter-spacing:0.35em;
+    color:var(--gold);
+    text-transform:uppercase;
+    margin:0 0 8px;
+    display:flex;
+    align-items:center;
+    gap:10px;
+  }
+  .eyebrow .redact{
+    display:inline-block;
+    width:34px; height:9px;
+    background:repeating-linear-gradient(90deg, #000 0 3px, #16181c 3px 4px);
+    border-radius:1px;
+    vertical-align:middle;
+  }
+  h1{
+    font-family:'Oswald', sans-serif;
+    font-weight:600;
+    letter-spacing:0.04em;
+    font-size:clamp(28px,4vw,42px);
+    margin:0;
+    color:var(--off-white);
+    text-transform:uppercase;
+  }
+  .tally{
+    font-size:12px;
+    color:var(--off-white-dim);
+    text-align:right;
+    line-height:1.6;
+  }
+  .tally b{color:var(--gold);font-size:20px;font-family:'Oswald',sans-serif;display:block;}
+  .case-code{
+    font-size:10px;
+    color:var(--steel);
+    letter-spacing:0.15em;
+    margin-top:4px;
+  }
+
+  /* ---------- Grid ---------- */
+  .grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fill, minmax(150px, 1fr));
+    gap:18px;
+  }
+
+  .tile{
+    aspect-ratio:2/3;
+    position:relative;
+    border-radius:3px;
+    overflow:hidden;
+    cursor:pointer;
+    border:1px solid var(--steel-dim);
+    background:var(--panel);
+    transition:transform .25s ease, border-color .25s ease, box-shadow .25s ease;
+  }
+  .tile:hover, .tile:focus-visible{
+    transform:translateY(-4px);
+    border-color:var(--gold-dim);
+    box-shadow:0 12px 28px rgba(0,0,0,0.55);
+    outline:none;
+  }
+
+  .cover-image{
+    width:100%;
+    height:100%;
+    object-fit:cover;
+    display:block;
+  }
+
+  .stamp{
+    position:absolute;
+    top:10px; right:10px;
+    font-size:9px;
+    letter-spacing:0.15em;
+    color:var(--void);
+    background:var(--gold);
+    padding:3px 7px;
+    border-radius:2px;
+    font-weight:600;
+    transform:rotate(4deg);
+    z-index:2;
+  }
+
+  /* empty / locked slots to show this is a growing archive */
+  .tile.empty{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    color:var(--steel);
+    font-size:11px;
+    letter-spacing:0.15em;
+    cursor:default;
+    background:
+      repeating-linear-gradient(135deg, var(--steel-dim) 0px, var(--steel-dim) 1px, transparent 1px, transparent 10px);
+    background-color:#111419;
+  }
+  .tile.empty:hover{transform:none;box-shadow:none;border-color:var(--steel-dim);}
+  .tile.empty span{opacity:0.7;}
+
+  /* ---------- Modal shell ---------- */
+  .modal-backdrop{
+    position:fixed; inset:0;
+    background:rgba(4,5,7,0.86);
+    backdrop-filter:blur(3px);
+    display:none;
+    align-items:center;
+    justify-content:center;
+    z-index:50;
+    padding:24px;
+  }
+  .modal-backdrop.open{display:flex;}
+
+  .modal{
+    width:100%;
+    max-width:760px;
+    background:linear-gradient(180deg, var(--panel), #14171d);
+    border:1px solid var(--steel-dim);
+    border-radius:6px;
+    box-shadow:0 30px 80px rgba(0,0,0,0.6);
+    position:relative;
+    overflow:hidden;
+  }
+
+  .modal-classbar{
+    height:16px;
+    background:repeating-linear-gradient(45deg, var(--blood) 0px, var(--blood) 10px, #1a0508 10px, #1a0508 20px);
+    display:flex; align-items:center; justify-content:center;
+  }
+  .modal-classbar span{
+    background:var(--void);
+    color:var(--off-white);
+    font-size:8px;
+    letter-spacing:0.3em;
+    font-weight:600;
+    padding:1px 12px;
+    font-family:'IBM Plex Mono', monospace;
+  }
+
+  .stamp-secret{
+    position:absolute;
+    top:44px; right:38px;
+    border:2px solid var(--blood);
+    color:var(--blood);
+    font-family:'Oswald',sans-serif;
+    font-weight:700;
+    font-size:13px;
+    letter-spacing:0.15em;
+    padding:5px 10px;
+    transform:rotate(-8deg);
+    opacity:0.85;
+    pointer-events:none;
+    z-index:4;
+    mix-blend-mode:screen;
+  }
+
+  .close-btn{
+    position:absolute; top:30px; right:14px;
+    width:30px;height:30px;
+    border-radius:50%;
+    border:1px solid var(--steel-dim);
+    background:rgba(0,0,0,0.3);
+    color:var(--off-white-dim);
+    font-size:15px;
+    cursor:pointer;
+    display:flex;align-items:center;justify-content:center;
+    z-index:6;
+    transition:color .2s, border-color .2s;
+  }
+  .close-btn:hover{color:var(--gold);border-color:var(--gold-dim);}
+
+  /* --- dossier view --- */
+  .dossier{padding:30px 34px 30px;}
+  .d-eyebrow{
+    font-size:10px;letter-spacing:0.3em;color:var(--blood);
+    text-transform:uppercase;margin:0 0 6px;
+  }
+  .d-title{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:clamp(20px,3vw,27px);
+    text-transform:uppercase;
+    letter-spacing:0.06em;
+    margin:0 0 20px;
+    color:var(--gold);
+    min-height:1.3em;
+  }
+  .d-title .cursor-blink{
+    display:inline-block;
+    width:0.5em;
+    animation:blink 1s step-end infinite;
+  }
+  @keyframes blink{ 50%{opacity:0;} }
+  .d-grid{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:14px 24px;
+    border-top:1px solid var(--steel-dim);
+    border-bottom:1px solid var(--steel-dim);
+    padding:18px 0;
+    margin-bottom:24px;
+  }
+  .d-field label{
+    display:block;
+    font-size:9px;
+    letter-spacing:0.2em;
+    color:var(--off-white-dim);
+    text-transform:uppercase;
+    margin-bottom:4px;
+  }
+  .d-field div{
+    font-size:14px;
+    color:var(--gold);
+    font-weight:500;
+  }
+  .d-status{
+    display:inline-flex;align-items:center;gap:8px;
+    font-size:12px;letter-spacing:0.1em;
+    color:#7fbf7f;
+    margin-bottom:26px;
+  }
+  .dot{width:7px;height:7px;border-radius:50%;background:#7fbf7f;box-shadow:0 0 8px #7fbf7f;}
+
+  .replay-btn{
+    display:inline-flex;align-items:center;gap:10px;
+    background:var(--gold);
+    color:var(--void);
+    border:none;
+    padding:13px 22px;
+    font-family:'Oswald',sans-serif;
+    font-weight:600;
+    font-size:13px;
+    letter-spacing:0.1em;
+    text-transform:uppercase;
+    border-radius:3px;
+    cursor:pointer;
+    transition:transform .15s ease, background .2s ease;
+  }
+  .replay-btn:hover{background:#ddb635; transform:translateY(-1px);}
+  .replay-btn svg{width:14px;height:14px;}
+
+  /* --- barrel wipe transition --- */
+  .barrel-wipe{
+    position:absolute; inset:0;
+    background:#000;
+    border-radius:50%;
+    z-index:10;
+    pointer-events:none;
+    opacity:0;
+  }
+  .barrel-wipe.play{
+    animation: wipe 0.9s cubic-bezier(.7,0,.3,1) forwards;
+  }
+  @keyframes wipe{
+    0%{opacity:1; clip-path:circle(0% at 50% 50%);}
+    60%{opacity:1;}
+    100%{opacity:1; clip-path:circle(75% at 50% 50%);}
+  }
+
+  /* --- debrief / "ending playback" view --- */
+  .debrief{
+    display:none;
+    grid-template-columns:1.3fr 1fr;
+    min-height:420px;
+  }
+  .debrief.open{display:grid;}
+
+  .screen{
+    position:relative;
+    background:#000;
+    overflow:hidden;
+  }
+
+  .screen iframe {
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    inset: 0;
+    border: none;
+  }
+
+  .screen-code{
+    position:absolute; bottom:14px; left:16px;
+    font-size:10px; letter-spacing:0.15em;
+    color:rgba(232,228,218,0.8);
+    z-index:3;
+    pointer-events:none;
+    text-shadow:0 1px 3px rgba(0,0,0,0.8);
+  }
+  .screen-title{
+    position:absolute; top:16px; left:16px;
+    font-size:9px; letter-spacing:0.2em;
+    color:rgba(201,162,39,0.9);
+    z-index:3;
+    pointer-events:none;
+    text-shadow:0 1px 3px rgba(0,0,0,0.8);
+  }
+  .timeline{
+    position:absolute; bottom:0; left:0; right:0;
+    height:3px; background:rgba(255,255,255,0.1);
+    z-index:3;
+    pointer-events:none;
+  }
+  .timeline-fill{
+    height:100%; width:0%;
+    background:var(--gold);
+  }
+  .debrief.open .timeline-fill{
+    animation: fill 8s linear forwards;
+  }
+  @keyframes fill{ to{ width:100%; } }
+
+  .report{
+    background:var(--gunmetal);
+    padding:26px 24px;
+    border-left:1px solid var(--steel-dim);
+    overflow-y:auto;
+    max-height:420px;
+    position:relative;
+  }
+  .report::before{
+    content:"";
+    position:absolute; inset:0;
+    background-image:repeating-linear-gradient(0deg, rgba(201,162,39,0.02) 0px, rgba(201,162,39,0.02) 1px, transparent 1px, transparent 3px);
+    pointer-events:none;
+  }
+  .report h3{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:11px;
+    letter-spacing:0.25em;
+    text-transform:uppercase;
+    color:var(--gold);
+    margin:0 0 4px;
+  }
+  .report .decrypt-status{
+    font-size:9px;
+    letter-spacing:0.15em;
+    color:var(--steel);
+    margin:0 0 16px;
+    text-transform:uppercase;
+  }
+  .type-line{
+    font-size:12.5px;
+    font-family:'IBM Plex Mono',monospace;
+    line-height:1.7;
+    color:var(--off-white-dim);
+    margin:0 0 12px;
+    border-left:2px solid var(--steel-dim);
+    padding-left:10px;
+    opacity:0;
+  }
+  .type-line::before{
+    content:"> ";
+    color:var(--gold-dim);
+  }
+  .type-line.show{
+    animation: fadein 0.5s ease forwards;
+  }
+  @keyframes fadein{ to{opacity:1;} }
+  .report .agent-note{
+    color:var(--off-white);
+    font-style:italic;
+    font-size:12.5px;
+    margin-top:18px;
+    border-left-color:var(--blood);
+  }
+
+  @media (max-width:640px){
+    .debrief.open{grid-template-columns:1fr;}
+    .screen{min-height:220px;}
+    .report{max-height:none; border-left:none; border-top:1px solid var(--steel-dim);}
+    .d-grid{grid-template-columns:1fr;}
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    .barrel-wipe.play, .timeline-fill, .type-line{animation:none !important;}
+    .type-line{opacity:1;}
+  }
+</style>
+</head>
+<body>
+
+<div class="classbar"><span>Top Secret &middot; Eyes Only &middot; Do Not Disclose</span></div>
+
+<div class="wrap">
+  <header>
+    <div>
+      <p class="eyebrow"><span class="redact"></span> Field Record &mdash; Personal Archive</p>
+      <h1>Completed Missions</h1>
+    </div>
+    <div class="tally">
+      Missions closed<br>
+      <b id="tally-count">1</b>
+      <div class="case-code">CASE REF &middot; 00-AX-1971</div>
+    </div>
+  </header>
+
+  <div class="grid" id="grid"></div>
+</div>
+
+<!-- Modal -->
+<div class="modal-backdrop" id="backdrop">
+  <div class="modal" id="modal">
+    <div class="modal-classbar"><span>Classified &middot; MI6 Archive Access</span></div>
+    <div class="stamp-secret">TOP SECRET</div>
+    <button class="close-btn" id="closeBtn" aria-label="Close">&times;</button>
+    <div class="barrel-wipe" id="barrelWipe"></div>
+
+    <!-- Dossier / completion view -->
+    <div class="dossier" id="dossierView">
+      <p class="d-eyebrow">Mission Dossier</p>
+      <h2 class="d-title" id="dTitle"><span class="cursor-blink">&#9608;</span></h2>
+
+      <div class="d-status"><span class="dot"></span> MISSION COMPLETE</div>
+
+      <div class="d-grid">
+        <div class="d-field">
+          <label>Agent</label>
+          <div>James Bond</div>
+        </div>
+        <div class="d-field">
+          <label>Completed on</label>
+          <div id="dDate">&mdash;</div>
+        </div>
+        <div class="d-field">
+          <label>Codename</label>
+          <div>FIRST LIGHT</div>
+        </div>
+        <div class="d-field">
+          <label>Clearance</label>
+          <div>00 &mdash; Debrief Authorized</div>
+        </div>
+      </div>
+
+      <button class="replay-btn" id="replayBtn">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+        Replay Debrief
+      </button>
+    </div>
+
+    <!-- Debrief / "ending playback" view -->
+    <div class="debrief" id="debriefView">
+      <div class="screen">
+        <iframe id="debriefVideo" src="" allow="autoplay; encrypted-media; fullscreen; picture-in-picture" allowfullscreen></iframe>
+        <div class="screen-title">FINAL TRANSMISSION</div>
+        <div class="screen-code">REC &middot; 00:00 / MISSION END</div>
+        <div class="timeline"><div class="timeline-fill" id="timelineFill"></div></div>
+      </div>
+      <div class="report">
+        <h3>Debrief Log</h3>
+        <p class="decrypt-status" id="decryptStatus">Awaiting decryption&hellip;</p>
+        <div id="reportLines"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  const games = [
+    {
+      id: 'first-light',
+      title: '007: First Light',
+      code: 'MI6 // 00-01',
+      coverUrl: 'https://i.postimg.cc/cLGHLgvc/Z6i-W6n7UNU59CKMXZRcgy-D.jpg',
+      videoUrl: 'https://go.screenpal.com/player/cOjOiJnwedy?autoplay=1&muted=0',
+      status: 'done'
+    }
+  ];
+
+  const emptySlots = 7; // extra locked slots so the wall reads as a growing archive
+
+  const grid = document.getElementById('grid');
+
+  games.forEach(g => {
+    const tile = document.createElement('div');
+    tile.className = 'tile done';
+    tile.tabIndex = 0;
+    tile.setAttribute('role','button');
+    tile.setAttribute('aria-label', 'Open dossier for ' + g.title);
+    tile.innerHTML = `
+      <div class="stamp">Complete</div>
+      <img class="cover-image" src="${g.coverUrl}" alt="${g.title} Cover Art">
+    `;
+    tile.addEventListener('click', () => openDossier(g));
+    tile.addEventListener('keydown', e => { if(e.key === 'Enter' || e.key === ' ') openDossier(g); });
+    grid.appendChild(tile);
+  });
+
+  for(let i=0;i<emptySlots;i++){
+    const empty = document.createElement('div');
+    empty.className = 'tile empty';
+    empty.innerHTML = '<span>LOCKED</span>';
+    grid.appendChild(empty);
+  }
+
+  document.getElementById('tally-count').textContent = games.length;
+
+  // ----- modal logic -----
+  const backdrop = document.getElementById('backdrop');
+  const dossierView = document.getElementById('dossierView');
+  const debriefView = document.getElementById('debriefView');
+  const dTitle = document.getElementById('dTitle');
+  const dDate = document.getElementById('dDate');
+  const closeBtn = document.getElementById('closeBtn');
+  const replayBtn = document.getElementById('replayBtn');
+  const barrelWipe = document.getElementById('barrelWipe');
+  const reportLines = document.getElementById('reportLines');
+  const timelineFill = document.getElementById('timelineFill');
+  const decryptStatus = document.getElementById('decryptStatus');
+  const debriefVideo = document.getElementById('debriefVideo');
+
+  let activeGame = null;
+
+  const todayStr = new Date().toLocaleDateString('en-US', { weekday:'long', year:'numeric', month:'long', day:'numeric' });
+
+  const debriefText = [
+    "Objective secured. Extraction confirmed at first light, callsign holding through the final approach.",
+    "Resistance encountered at the terminal stage was neutralized without compromising the operation.",
+    "Asset behaviour throughout the mission was consistent with 00-status expectations: composed under fire, improvising when the plan broke down.",
+    "The final exchange closed the file on this operation. London has logged the outcome as a clean win."
+  ];
+  const agentNote = "&mdash; Filed and archived. Ready for the next assignment.";
+
+  function scrambleReveal(el, finalText, duration = 900){
+    const cipher = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789#%&$*';
+    const len = finalText.length;
+    const frames = 18;
+    let frame = 0;
+    const interval = setInterval(() => {
+      frame++;
+      const revealCount = Math.floor((frame / frames) * len);
+      let out = '';
+      for(let i=0;i<len;i++){
+        if(i < revealCount || finalText[i] === ' ' || finalText[i] === ':'){
+          out += finalText[i];
+        } else {
+          out += cipher[Math.floor(Math.random()*cipher.length)];
+        }
+      }
+      el.textContent = out;
+      if(frame >= frames){
+        clearInterval(interval);
+        el.textContent = finalText;
+      }
+    }, duration / frames);
+  }
+
+  function openDossier(game){
+    activeGame = game;
+    scrambleReveal(dTitle, game.title, 800);
+    dDate.textContent = todayStr;
+    dossierView.style.display = 'block';
+    debriefView.classList.remove('open');
+    backdrop.classList.add('open');
+  }
+
+  function closeModal(){
+    backdrop.classList.remove('open');
+    debriefView.classList.remove('open');
+    dossierView.style.display = 'block';
+    reportLines.innerHTML = '';
+    timelineFill.style.animation = 'none';
+    timelineFill.style.width = '0%';
+    decryptStatus.textContent = 'Awaiting decryption\u2026';
+    decryptStatus.style.color = '';
+
+    if (debriefVideo) {
+      debriefVideo.src = '';
+    }
+  }
+
+  closeBtn.addEventListener('click', closeModal);
+  backdrop.addEventListener('click', e => { if(e.target === backdrop) closeModal(); });
+  document.addEventListener('keydown', e => { if(e.key === 'Escape') closeModal(); });
+
+  replayBtn.addEventListener('click', () => {
+    barrelWipe.classList.remove('play');
+    void barrelWipe.offsetWidth; // restart animation
+    barrelWipe.classList.add('play');
+
+    setTimeout(() => {
+      dossierView.style.display = 'none';
+      debriefView.classList.add('open');
+      barrelWipe.classList.remove('play');
+
+      if (debriefVideo && activeGame) {
+        debriefVideo.src = activeGame.videoUrl;
+      }
+
+      playReport();
+    }, 550);
+  });
+
+  function playReport(){
+    reportLines.innerHTML = '';
+    timelineFill.style.animation = 'none';
+    void timelineFill.offsetWidth;
+    timelineFill.style.width = '0%';
+    timelineFill.style.animation = 'fill 8s linear forwards';
+
+    decryptStatus.textContent = 'Decrypting transmission\u2026';
+    decryptStatus.style.color = 'var(--gold)';
+
+    debriefText.forEach((line, i) => {
+      setTimeout(() => {
+        const p = document.createElement('p');
+        p.className = 'type-line';
+        reportLines.appendChild(p);
+        requestAnimationFrame(() => p.classList.add('show'));
+        scrambleReveal(p, line, 700);
+      }, i * 1600 + 300);
+    });
+
+    setTimeout(() => {
+      const p = document.createElement('p');
+      p.className = 'type-line agent-note';
+      p.innerHTML = agentNote;
+      reportLines.appendChild(p);
+      requestAnimationFrame(() => p.classList.add('show'));
+      decryptStatus.textContent = 'Decryption complete';
+      decryptStatus.style.color = '#7fbf7f';
+    }, debriefText.length * 1600 + 900);
+  }
+</script>
+
+</body>
+</html>

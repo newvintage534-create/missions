@@ -478,7 +478,7 @@
     </div>
     <div class="tally">
       Missions closed<br>
-      <b id="tally-count">1</b>
+      <b id="tally-count">2</b>
       <div class="case-code">CASE REF &middot; 00-AX-1971</div>
     </div>
   </header>
@@ -504,7 +504,7 @@
       <div class="d-grid">
         <div class="d-field">
           <label>Agent</label>
-          <div>James Bond</div>
+          <div id="dAgent">James Bond</div>
         </div>
         <div class="d-field">
           <label>Completed on</label>
@@ -512,11 +512,11 @@
         </div>
         <div class="d-field">
           <label>Codename</label>
-          <div>FIRST LIGHT</div>
+          <div id="dCodename">FIRST LIGHT</div>
         </div>
         <div class="d-field">
           <label>Clearance</label>
-          <div>00 &mdash; Debrief Authorized</div>
+          <div id="dClearance">00 &mdash; Debrief Authorized</div>
         </div>
       </div>
 
@@ -551,11 +551,25 @@
       code: 'MI6 // 00-01',
       coverUrl: 'https://i.postimg.cc/cLGHLgvc/Z6i-W6n7UNU59CKMXZRcgy-D.jpg',
       videoUrl: 'https://go.screenpal.com/player/cOjOiJnwedy?autoplay=1&muted=0',
+      agent: 'James Bond',
+      codename: 'FIRST LIGHT',
+      clearance: '00 — Debrief Authorized',
+      status: 'done'
+    },
+    {
+      id: 'pokemon-shield',
+      title: 'Pokémon Shield',
+      code: 'MI6 // 067-01',
+      coverUrl: 'https://i.postimg.cc/PxXMrYbZ/image.png',
+      videoUrl: 'https://go.screenpal.com/player/cOQIQ6nwJFV?autoplay=1&muted=0',
+      agent: 'Ash Jam',
+      codename: 'GALAR CHAMPION',
+      clearance: '067 — Debrief Authorized',
       status: 'done'
     }
   ];
 
-  const emptySlots = 7; // extra locked slots so the wall reads as a growing archive
+  const emptySlots = 6; // extra locked slots so the wall reads as a growing archive
 
   const grid = document.getElementById('grid');
 
@@ -588,7 +602,10 @@
   const dossierView = document.getElementById('dossierView');
   const debriefView = document.getElementById('debriefView');
   const dTitle = document.getElementById('dTitle');
+  const dAgent = document.getElementById('dAgent');
   const dDate = document.getElementById('dDate');
+  const dCodename = document.getElementById('dCodename');
+  const dClearance = document.getElementById('dClearance');
   const closeBtn = document.getElementById('closeBtn');
   const replayBtn = document.getElementById('replayBtn');
   const barrelWipe = document.getElementById('barrelWipe');
@@ -604,7 +621,7 @@
   const debriefText = [
     "Objective secured. Extraction confirmed at first light, callsign holding through the final approach.",
     "Resistance encountered at the terminal stage was neutralized without compromising the operation.",
-    "Asset behaviour throughout the mission was consistent with 00-status expectations: composed under fire, improvising when the plan broke down.",
+    "Asset behaviour throughout the mission was consistent with agent-status expectations: composed under fire, improvising when the plan broke down.",
     "The final exchange closed the file on this operation. London has logged the outcome as a clean win."
   ];
   const agentNote = "&mdash; Filed and archived. Ready for the next assignment.";
@@ -636,7 +653,10 @@
   function openDossier(game){
     activeGame = game;
     scrambleReveal(dTitle, game.title, 800);
+    dAgent.textContent = game.agent;
     dDate.textContent = todayStr;
+    dCodename.textContent = game.codename;
+    dClearance.textContent = game.clearance;
     dossierView.style.display = 'block';
     debriefView.classList.remove('open');
     backdrop.classList.add('open');

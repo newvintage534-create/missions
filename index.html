@@ -544,6 +544,8 @@
 </div>
 
 <script>
+  const todayStr = new Date().toLocaleDateString('en-US', { weekday:'long', year:'numeric', month:'long', day:'numeric' });
+
   const games = [
     {
       id: 'first-light',
@@ -552,6 +554,7 @@
       coverUrl: 'https://i.postimg.cc/cLGHLgvc/Z6i-W6n7UNU59CKMXZRcgy-D.jpg',
       videoUrl: 'https://go.screenpal.com/player/cOjOiJnwedy?autoplay=1&muted=0',
       agent: 'James Bond',
+      completedDate: 'August 26, 2026',
       codename: 'FIRST LIGHT',
       clearance: '00 — Debrief Authorized',
       status: 'done'
@@ -563,6 +566,7 @@
       coverUrl: 'https://i.postimg.cc/PxXMrYbZ/image.png',
       videoUrl: 'https://go.screenpal.com/player/cOQIQ6nwJFV?autoplay=1&muted=0',
       agent: 'Ash Jam',
+      completedDate: todayStr,
       codename: 'GALAR CHAMPION',
       clearance: '067 — Debrief Authorized',
       status: 'done'
@@ -616,8 +620,6 @@
 
   let activeGame = null;
 
-  const todayStr = new Date().toLocaleDateString('en-US', { weekday:'long', year:'numeric', month:'long', day:'numeric' });
-
   const debriefText = [
     "Objective secured. Extraction confirmed at first light, callsign holding through the final approach.",
     "Resistance encountered at the terminal stage was neutralized without compromising the operation.",
@@ -654,7 +656,7 @@
     activeGame = game;
     scrambleReveal(dTitle, game.title, 800);
     dAgent.textContent = game.agent;
-    dDate.textContent = todayStr;
+    dDate.textContent = game.completedDate;
     dCodename.textContent = game.codename;
     dClearance.textContent = game.clearance;
     dossierView.style.display = 'block';
